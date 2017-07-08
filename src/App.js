@@ -10,6 +10,29 @@ class App extends Component {
       thoughts: []
     };
   }
+  async componentDidMount() {
+    const reader = await fetch(
+      `https://code.jquery.com/jquery-3.2.1.slim.min.js`
+    ).then(r => r.body.getReader());
+    let stuff = await reader.read();
+    const chunks = [];
+    while (!stuff.done) {
+      chunks.push(stuff.value);
+      stuff = await reader.read();
+    }
+    const code = chunks
+      .join()
+      .split(",")
+      .map(char => String.fromCharCode(char))
+      .join("");
+    await loadStuff(btoa(code));
+    /*global $*/
+    try {
+      $("body").css("background", "mistyrose");
+    } catch (e) {
+      document.body.style.background = "springgreen";
+    }
+  }
 
   createThought(thought) {
     Object.assign(thought, { id: this.state.thoughts.length });
@@ -31,5 +54,12 @@ class App extends Component {
     );
   }
 }
-
+function loadStuff(code) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = `data:text/javascript;base64,${code}`;
+    document.body.appendChild(script);
+    script.onload = resolve;
+  });
+}
 export default App;
